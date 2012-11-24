@@ -85,8 +85,11 @@ public class AuthListener implements Listener {
 		if (!plugin.logins.containsKey(player.getName().toLowerCase()) && !plugin.getServer().getOnlineMode())
 			player.kickPlayer("You're not registered");
 		if (!plugin.getServer().getOnlineMode()) {
-			player.sendMessage("Please login to your offline-mode account to play!");
+			for (Player p : plugin.getServer().getOnlinePlayers())
+				if (p.getName().equals(player.getName()))
+					player.kickPlayer("Same username");
 		}
+		player.sendMessage("Please login to your offline-mode account to play!");
 	}
 	
 	/*
@@ -152,8 +155,7 @@ public class AuthListener implements Listener {
 	public void onCommand(PlayerCommandPreprocessEvent event) {
 		String[] args = event.getMessage().split(" ");
 		Player player = event.getPlayer();
-		switch (args[0]) {
-		case "/register":
+		if (args[0].equalsIgnoreCase("/register")) {
 			if (plugin.getServer().getOnlineMode()) { //If the server is on online-mode
 				if (args.length >= 2) { //If the command has at least 2 arguments
 					if (!plugin.logins.containsKey(player.getName().toLowerCase())) { //Checks if the player is already registered
@@ -168,8 +170,7 @@ public class AuthListener implements Listener {
 			} else { //If the server is on offline-mode
 				player.sendMessage("Sorry, you can only do this when the server is in online-mode.");
 			}
-		break;
-		case "/login":
+		} else if (args[0].equalsIgnoreCase("/login")) {
 			if (!plugin.getServer().getOnlineMode()) { //If the server is on offline-mode
 				if (args.length >= 2) { //If the commands has at least 2 arguments
 					if (plugin.logins.containsKey(player.getName().toLowerCase())) { //If the player is registered
@@ -192,8 +193,7 @@ public class AuthListener implements Listener {
 			} else { //If the server is on online-mode
 				player.sendMessage("You can only login when the server is in offline-mode.");
 			}
-		break;
-		case "/changepassword":
+		} else if (args[0].equalsIgnoreCase("/changepassword")) {
 			if (plugin.getServer().getOnlineMode()) { //If the server is on online-mode
 				if (args.length >= 3) { //If the command has at least 3 arguments
 					if (plugin.logins.containsKey(player.getName().toLowerCase())) { //If the player is already registered
@@ -213,8 +213,7 @@ public class AuthListener implements Listener {
 			} else { //If the server is in offline-mode
 				player.sendMessage("Sorry, you can only do this when the server is in online-mode.");
 			}
-		break;
-		case "/resetpassword":
+		} else if (args[0].equalsIgnoreCase("/resetpassword")) {
 			if (args.length >= 3) { //If the command has at least 3 arguments
 				if (plugin.logins.containsKey(args[1].toLowerCase())) { //If the player entered exists in the map
 					plugin.logins.remove(args[1].toLowerCase());
@@ -226,7 +225,6 @@ public class AuthListener implements Listener {
 			} else { //If the command had less than 3 arguments
 				player.sendMessage("Usage: /resetpassword <player> <new password>");
 			}
-		break;
 		}
 	}
 	

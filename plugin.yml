@@ -1,0 +1,23 @@
+name: AuthAhead
+description: This plugin allows registration of offline-mode accounts
+version: 1.0.0
+author: QuantumDev
+dev-url: http://dev.bukkit.org/server-mods/auth-ahead/
+
+main: com.quantumdev.authahead.AuthAhead
+
+commands:
+   register:
+      description: Registers your offline-mode account
+   login:
+      description: Allows you to login to your offline-mode account
+   changepassword:
+      description: Allows you to change your password
+   resetpassword:
+      description: Allows you to change another players password
+      permission: authahead.reset
+
+permissions:
+   authahead.reset:
+      description: Allows you to change another players password
+      default: op
