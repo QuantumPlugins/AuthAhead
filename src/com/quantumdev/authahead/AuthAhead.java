@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /*
@@ -99,5 +100,9 @@ public class AuthAhead extends JavaPlugin {
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	public void sendMessage(Player p, String message) {
+		p.sendMessage("§3[§bAuth Ahead§3]§b " + message);
 	}
 }

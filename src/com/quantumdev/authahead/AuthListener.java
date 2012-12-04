@@ -30,6 +30,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -65,9 +67,18 @@ public class AuthListener implements Listener {
 		Player player = event.getPlayer();
 		if (!plugin.getServer().getOnlineMode()) {
 			if (!plugin.loggedIn.contains(player.getName().toLowerCase())) {
-				player.sendMessage("You must be logged in before you can play!");
+				plugin.sendMessage(player, "You must be logged in before you can play!");
 				event.setCancelled(true);
 			}
+		}
+	}
+	
+	@EventHandler
+	public void onChat(AsyncPlayerChatEvent event) {
+		Player p = event.getPlayer();
+		if (!plugin.loggedIn.contains(p.getName().toLowerCase())) {
+			plugin.sendMessage(p, "You must be logged in before you can play!");
+			event.setCancelled(true);
 		}
 	}
 	
@@ -82,14 +93,16 @@ public class AuthListener implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		if (!plugin.logins.containsKey(player.getName().toLowerCase()) && !plugin.getServer().getOnlineMode())
-			player.kickPlayer("You're not registered");
+		if (!plugin.logins.containsKey(player.getName().toLowerCase()) && !plugin.getServer().getOnlineMode()) {
+			plugin.sendMessage(player, "You need to register your account before being able to play!");
+			return;
+		}
 		if (!plugin.getServer().getOnlineMode()) {
 			for (Player p : plugin.getServer().getOnlinePlayers())
 				if (p.getName().equals(player.getName()))
 					player.kickPlayer("Same username");
 		}
-		player.sendMessage("Please login to your offline-mode account to play!");
+		plugin.sendMessage(player, "Please login to your offline-mode account to play!");
 	}
 	
 	/*
@@ -122,7 +135,7 @@ public class AuthListener implements Listener {
 		Player player = event.getPlayer();
 		if (!plugin.getServer().getOnlineMode()) {
 			if (!plugin.loggedIn.contains(player.getName().toLowerCase())) {
-				player.sendMessage("You must be logged in before you can place blocks!");
+				plugin.sendMessage(player, "You must be logged in before you can place blocks!");
 				event.setCancelled(true);
 			}
 		}
@@ -140,7 +153,7 @@ public class AuthListener implements Listener {
 		Player player = event.getPlayer();
 		if (!plugin.getServer().getOnlineMode()) {
 			if (!plugin.loggedIn.contains(player.getName().toLowerCase())) {
-				player.sendMessage("You must be logged in before you can break blocks!");
+				plugin.sendMessage(player, "You must be logged in before you can break blocks!");
 				event.setCancelled(true);
 			}
 		}
@@ -156,19 +169,15 @@ public class AuthListener implements Listener {
 		String[] args = event.getMessage().split(" ");
 		Player player = event.getPlayer();
 		if (args[0].equalsIgnoreCase("/register")) {
-			if (plugin.getServer().getOnlineMode()) { //If the server is on online-mode
-				if (args.length >= 2) { //If the command has at least 2 arguments
-					if (!plugin.logins.containsKey(player.getName().toLowerCase())) { //Checks if the player is already registered
-						plugin.logins.put(player.getName().toLowerCase(), sha1(args[1]));
-						player.sendMessage("You successfully registered!");
-					} else { //If the player is already registered
-						player.sendMessage("You're already registered!");
-					}
-				} else { //If the command only has 1 argument (/register)
-					player.sendMessage("Usage: /register <password>");
+			if (args.length >= 2) { //If the command has at least 2 arguments
+				if (!plugin.logins.containsKey(player.getName().toLowerCase())) { //Checks if the player is already registered
+					plugin.logins.put(player.getName().toLowerCase(), sha1(args[1]));
+					plugin.sendMessage(player, "You successfully registered!");
+				} else { //If the player is already registered
+					plugin.sendMessage(player, "You're already registered!");
 				}
-			} else { //If the server is on offline-mode
-				player.sendMessage("Sorry, you can only do this when the server is in online-mode.");
+			} else { //If the command only has 1 argument (/register)
+				plugin.sendMessage(player, "Usage: /register <password>");
 			}
 		} else if (args[0].equalsIgnoreCase("/login")) {
 			if (!plugin.getServer().getOnlineMode()) { //If the server is on offline-mode
@@ -177,21 +186,21 @@ public class AuthListener implements Listener {
 						if (!plugin.loggedIn.contains(player.getName().toLowerCase())) { //If the player isn't already logged in
 							if (plugin.logins.get(player.getName().toLowerCase()).equals(sha1(args[1]))) { //If the password matches the one in the map
 								plugin.loggedIn.add(player.getName().toLowerCase());
-								player.sendMessage("You have successfully logged in!");
+								plugin.sendMessage(player, "You have successfully logged in!");
 							} else { //Incorrect password
-								player.sendMessage("You have entered an incorrect password!");
+								plugin.sendMessage(player, "You have entered an incorrect password!");
 							}
 						} else { //Already logged in
-							player.sendMessage("You're already logged in!");
+							plugin.sendMessage(player, "You're already logged in!");
 						}
 					} else { //They aren't registered
-						player.sendMessage("You have to be registered in order to login!");
+						plugin.sendMessage(player, "You have to be registered in order to login!");
 					}
 				} else { //Doesn't have the proper amount of arguments
-					player.sendMessage("Usage: /login <password>");
+					plugin.sendMessage(player, "Usage: /login <password>");
 				}
 			} else { //If the server is on online-mode
-				player.sendMessage("You can only login when the server is in offline-mode.");
+				plugin.sendMessage(player, "You can only login when the server is in offline-mode.");
 			}
 		} else if (args[0].equalsIgnoreCase("/changepassword")) {
 			if (plugin.getServer().getOnlineMode()) { //If the server is on online-mode
@@ -200,30 +209,30 @@ public class AuthListener implements Listener {
 						if (plugin.logins.get(player.getName().toLowerCase()).equals(sha1(args[1]))) { //If the old password matches the one in the map
 							plugin.logins.remove(player.getName().toLowerCase());
 							plugin.logins.put(player.getName().toLowerCase(), sha1(args[2]));
-							player.sendMessage("Your password has been changed.");
+							plugin.sendMessage(player, "Your password has been changed.");
 						} else { //Incorrect password
-							player.sendMessage("You've entered an incorrect password.");
+							plugin.sendMessage(player, "You've entered an incorrect password.");
 						}
 					} else { //If the player isn't registered
-						player.sendMessage("You have to be registered in order to change your password.");
+						plugin.sendMessage(player, "You have to be registered in order to change your password.");
 					}
 				} else { //If there aren't at least 3 arguments
-					player.sendMessage("Usage: /changepassword <old password> <new password>");
+					plugin.sendMessage(player, "Usage: /changepassword <old password> <new password>");
 				}
 			} else { //If the server is in offline-mode
-				player.sendMessage("Sorry, you can only do this when the server is in online-mode.");
+				plugin.sendMessage(player, "Sorry, you can only do this when the server is in online-mode.");
 			}
 		} else if (args[0].equalsIgnoreCase("/resetpassword")) {
 			if (args.length >= 3) { //If the command has at least 3 arguments
 				if (plugin.logins.containsKey(args[1].toLowerCase())) { //If the player entered exists in the map
 					plugin.logins.remove(args[1].toLowerCase());
 					plugin.logins.put(args[1].toLowerCase(), sha1(args[2]));
-					player.sendMessage(args[1] + "'s password has been changed.");
+					plugin.sendMessage(player, args[1] + "'s password has been changed.");
 				} else { //The player doesn't exist in the map
-					player.sendMessage("That user doesn't seem to be registered.");
+					plugin.sendMessage(player, "That user doesn't seem to be registered.");
 				}
 			} else { //If the command had less than 3 arguments
-				player.sendMessage("Usage: /resetpassword <player> <new password>");
+				plugin.sendMessage(player, "Usage: /resetpassword <player> <new password>");
 			}
 		}
 	}
@@ -234,7 +243,7 @@ public class AuthListener implements Listener {
 	 * digest (SHA1). After that, it turns the byte array into a
 	 * hex string
 	 * 
-	 * @param a The input string that is going to be encypted
+	 * @param a The input string that is going to be encrypted
 	 * 
 	 * @return It returns the SHA1 encrypted string
 	 */
