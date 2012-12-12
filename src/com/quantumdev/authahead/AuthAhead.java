@@ -49,6 +49,8 @@ public class AuthAhead extends JavaPlugin {
 	
 	private AuthListener authListener;
 	
+	public boolean allowOfflineRegistration;
+	
 	/*
 	 * When the plugin is enabled, I create and register my listeners, read
 	 * the current logins file to fill my HashMap, and setup a scheduler that
@@ -57,6 +59,8 @@ public class AuthAhead extends JavaPlugin {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void onEnable() {
+		saveDefaultConfig();
+		allowOfflineRegistration = getConfig().getBoolean("allow-offline-registration");
 		authListener = new AuthListener(this);
 		getServer().getPluginManager().registerEvents(authListener, this);
 		try	{		
